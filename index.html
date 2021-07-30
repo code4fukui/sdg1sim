@@ -71,7 +71,7 @@ onload = async () => {
     for (let i = 0; i < pair.length; i+= 2) {
       const n = pair[i];
       const m = pair[i + 1];
-      const r = rnd(2);
+      const r = Math.random() < parseFloat(sellucky.value) ? n > m : rnd(2);
       let bet = 1;
       if (selbet.value != "0") {
         bet = Math.min(people[n], people[m]) * parseFloat(selbet.value);
@@ -92,27 +92,38 @@ onload = async () => {
     spanyear.textContent = (day / 365).toFixed(1);
   };
 
+  const show = () => {
+    const calc = (r) => (people.reduce((pre, d) => d < r ? pre + 1 : pre, 0) / people.length * 100).toFixed(1) + "%";
+    spanlost.textContent = calc(10);
+    spanlose.textContent = calc(100);
+    showDay();
+    showData(people, chksort.checked);
+  };
   reset.onclick = () => {
     init();
     day = 0;
-    showDay();
-    showData(people, chksort.checked);
+    show();
   };
   reset.onclick();
 
   btn1d.onclick = () => {
     sim();
     day++;
-    showDay();
-    showData(people, chksort.checked);
+    show();
   };
   btn1y.onclick = () => {
     for (let i = 0; i < 365; i++) {
       sim();
       day++;
     }
-    showDay();
-    showData(people, chksort.checked);
+    show();
+  };
+  btn10y.onclick = () => {
+    for (let i = 0; i < 365 * 10; i++) {
+      sim();
+      day++;
+    }
+    show();
   };
   chksort.onchange = () => {
     showData(people, chksort.checked);
@@ -122,7 +133,12 @@ onload = async () => {
   };
 }; 
 </script>
-<span id="spanlen"></span>人じゃんけんゲームシミュレーション <span id="spanday"></span>日目 (<span id="spanyear"></span>年目)<br>
+<style>
+body, input, select {
+  font-size: 16px;
+}
+</style>
+<span id="spanlen"></span>人じゃんけんゲームシミュレーション <span id="spanday"></span>日目 (<span id="spanyear"></span>年目) 所持金 減少者率:<span id=spanlose></span> 10%未満率:<span id=spanlost></span><br>
 <div id=chart></div>
 <select id=sellen>
   <option>10</option>
@@ -131,20 +147,29 @@ onload = async () => {
   <option>10000</option>
 </select>
 <button id=btn1d>1日すすめる</button>
-<button id=btn1y>365日すすめる</button>
+<button id=btn1y>1年すすめる</button>
+<button id=btn10y>10年すすめる</button>
 <label><input id=chksort checked type=checkbox>並び替え</label>
 <select id=selbet>
   <option value=0>掛け金は1（所持金0の時は0）</option>
+  <option value=".01">掛け金は所持金の1%</option>
   <option value=".1">掛け金は所持金の10%</option>
   <option value=".2">掛け金は所持金の20%</option>
   <option value=".5">掛け金は所持金の50%</option>
   <option value="1">掛け金は所持金の100%</option>
+</select>
+<select id=sellucky>
+  <option value="0">完全運社会</option>
+  <option value="0.25">実力25%、運75%</option>
+  <option value="0.50">実力と運、半々</option>
+  <option value="0.75">実力75%、運25%</option>
+  <option value="1">完全実力社会</option>
 </select>
 <button id=reset>最初から</button>
 
 <div style="margin:1em">
 じゃんけんゲーム<br>
 1. 所持金100マネーからスタート<br>
-2. 1日1回に自分以外の誰かとじゃんけんする<br>
+2. 1日1回に自分以外の誰かとじゃんけんする（実力は右の方が強い）<br>
 3. 買ったら掛け金もらい、負けたら掛け金をあげる<br>
 </div>
