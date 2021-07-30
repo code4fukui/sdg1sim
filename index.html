@@ -1,0 +1,150 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>じゃんけんゲームシミュレーション</title>
+<script type="module">
+import Chart from "https://js.sabae.cc/Chart.mjs";
+//import sleep from "https://js.sabae.cc/sleep.js";
+
+const rnd = (n) => Math.floor(Math.random() * n);
+
+const shuffle = (array) => {
+	for (let i = 0; i < array.length; i++) {
+		const n = rnd(array.length);
+		const tmp = array[i];
+		array[i] = array[n];
+		array[n] = tmp;
+	}
+};
+
+const showData = (src, sortflg) => {
+  if (sortflg) {
+    src = src.slice().sort((a, b) => a - b);
+  }
+  const data = src.map((p, idx) => ({ x: idx, y: p }));
+  chart.innerHTML = "";
+  const canvas = document.createElement("canvas");
+  chart.appendChild(canvas);
+  new Chart(canvas, { type: "scatter",
+    data: {
+      datasets: [{
+          backgroundColor: "#55f",
+          data,
+      }]
+    },
+    options: {
+      animation: false,
+      legend: {
+        display: false
+      },
+      scales: {
+        yAxes: [
+          {
+            ticks: {
+              suggestedMax: 200,
+              beginAtZero: true,
+           }
+          }
+        ],
+      },
+    },
+  });
+};
+
+onload = async () => {
+  let people;
+  let pair;
+
+  const init = () => {
+    const len = parseInt(sellen.value);
+    spanlen.textContent = len;
+    people = new Array(len);
+    for (let i = 0; i < people.length; i++) {
+      people[i] = 100;
+    }
+    pair = new Array(len);
+    for (let i = 0; i < pair.length; i++) {
+      pair[i] = i;
+    }
+    shuffle(pair);
+  };
+  const sim = () => {
+    shuffle(pair);
+    for (let i = 0; i < pair.length; i+= 2) {
+      const n = pair[i];
+      const m = pair[i + 1];
+      const r = rnd(2);
+      let bet = 1;
+      if (selbet.value != "0") {
+        bet = Math.min(people[n], people[m]) * parseFloat(selbet.value);
+      }
+      if (r == 0 && people[n]) {
+        people[n] -= bet;
+        people[m] += bet;
+      } else if (r == 1 && people[m]) {
+        people[m] -= bet;
+        people[n] += bet;
+      }
+    }
+  };
+
+  let day = 0;
+  const showDay = () => {
+    spanday.textContent = day;
+    spanyear.textContent = (day / 365).toFixed(1);
+  };
+
+  reset.onclick = () => {
+    init();
+    day = 0;
+    showDay();
+    showData(people, chksort.checked);
+  };
+  reset.onclick();
+
+  btn1d.onclick = () => {
+    sim();
+    day++;
+    showDay();
+    showData(people, chksort.checked);
+  };
+  btn1y.onclick = () => {
+    for (let i = 0; i < 365; i++) {
+      sim();
+      day++;
+    }
+    showDay();
+    showData(people, chksort.checked);
+  };
+  chksort.onchange = () => {
+    showData(people, chksort.checked);
+  };
+  sellen.onchange = () => {
+    reset.onclick();
+  };
+}; 
+</script>
+<span id="spanlen"></span>人じゃんけんゲームシミュレーション <span id="spanday"></span>日目 (<span id="spanyear"></span>年目)<br>
+<div id=chart></div>
+<select id=sellen>
+  <option>10</option>
+  <option selected>100</option>
+  <option>1000</option>
+  <option>10000</option>
+</select>
+<button id=btn1d>1日すすめる</button>
+<button id=btn1y>365日すすめる</button>
+<label><input id=chksort checked type=checkbox>並び替え</label>
+<select id=selbet>
+  <option value=0>掛け金は1（所持金0の時は0）</option>
+  <option value=".1">掛け金は所持金の10%</option>
+  <option value=".2">掛け金は所持金の20%</option>
+  <option value=".5">掛け金は所持金の50%</option>
+  <option value="1">掛け金は所持金の100%</option>
+</select>
+<button id=reset>最初から</button>
+
+<div style="margin:1em">
+じゃんけんゲーム<br>
+1. 所持金100マネーからスタート<br>
+2. 1日1回に自分以外の誰かとじゃんけんする<br>
+3. 買ったら掛け金もらい、負けたら掛け金をあげる<br>
+</div>
